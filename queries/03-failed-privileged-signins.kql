@@ -1,0 +1,12 @@
+// TEMPLATE: failed interactive sign-ins targeting explicitly monitored accounts.
+// Set your own Object IDs in the private rule. Do not commit live identifiers.
+let MonitoredUserIds = dynamic([
+    "00000000-0000-0000-0000-000000000001",
+    "00000000-0000-0000-0000-000000000002"
+]);
+SigninLogs
+| where TimeGenerated > ago(15m)
+| where ResultType != "0"
+| where UserId in~ (MonitoredUserIds)
+| project TimeGenerated, UserPrincipalName, UserId, IPAddress, AppDisplayName, ResultType, ResultDescription
+| order by TimeGenerated desc
