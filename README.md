@@ -68,7 +68,27 @@ Microsoft Entra ID · Azure Monitor · Log Analytics · KQL · Azure RBAC · Azu
 
 ## Evidence
 
-Add **redacted** PNG screenshots to `screenshots/`. Suggested captures are the Entra diagnostic-setting configuration, Log Analytics sign-in results, and Azure Monitor alert review screen. Screenshot filenames and captions are documented in `screenshots/README.md`.
+The following redacted screenshots are stored in the repository and displayed in implementation order. Identifiers have been obscured for public documentation.
+
+### 1. Microsoft Entra diagnostic settings
+
+The Entra tenant's diagnostic setting routes `SignInLogs` and `AuditLogs` to Log Analytics.
+
+![Redacted Microsoft Entra diagnostic setting exporting sign-in and audit logs](screenshots/03-entra-diagnostic-settings-redacted.png)
+
+### 2. KQL sign-in log verification
+
+The `SigninLogs` query returned successful interactive sign-in records, verifying that data reached the workspace.
+
+![Redacted Log Analytics query and successful sign-in results](screenshots/02-signin-log-query-results-redacted.png)
+
+### 3. Azure Monitor alert rule configuration
+
+The alert wizard review shows the configured single-event log search, selected email action group, and severity. **This screenshot documents configuration only, not successful deployment or email delivery.** The initial creation attempt encountered an RBAC write authorization error, and successful alert firing remains unverified.
+
+![Redacted Azure Monitor alert rule Review and create screen](screenshots/01-alert-rule-review-redacted.png)
+
+See [validation checklist](docs/validation-checklist.md) for outstanding end-to-end tests.
 
 ## Security considerations
 
