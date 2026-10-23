@@ -1,0 +1,8 @@
+// Verify that Entra interactive sign-in events are reaching Log Analytics.
+// A nonzero count means records exist in the selected 24-hour range.
+SigninLogs
+| where TimeGenerated > ago(24h)
+| summarize
+    TotalSignIns = count(),
+    LatestSignIn = max(TimeGenerated),
+    LatestIngestion = max(ingestion_time())
