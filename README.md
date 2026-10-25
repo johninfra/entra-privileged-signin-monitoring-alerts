@@ -63,7 +63,10 @@ Microsoft Entra ID · Azure Monitor · Log Analytics · KQL · Azure RBAC · Azu
 │   ├── 02-privileged-signins.kql
 │   └── 03-failed-privileged-signins.kql
 └── screenshots/
-    └── README.md
+|   └── 01-alert-rule-review-redacted.png
+│   ├── 02-signin-log-query-results-redacted.png
+|   └── 03-entra-diagnostic-settings-redacted.png
+ 
 ```
 
 ## Evidence
