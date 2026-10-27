@@ -2,8 +2,6 @@
 
 Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra sign-in events to Azure Monitor Logs, investigate them with Kusto Query Language (KQL), and configure email notifications for privileged account activity.
 
-> **Lab status (October 23, 2026):** Log Analytics workspace creation and Entra `SigninLogs` ingestion have been verified. A scheduled query alert was configured in the Azure portal, but an earlier create attempt returned `Microsoft.Insights/scheduledQueryRules/write` authorization failure. **Successful alert creation and email delivery have not yet been verified.**
-
 ## Objectives
 
 - Centralize Microsoft Entra interactive sign-in telemetry in a Log Analytics workspace.
