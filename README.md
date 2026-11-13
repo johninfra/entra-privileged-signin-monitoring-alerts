@@ -100,8 +100,6 @@ The alert wizard review shows the configured single-event log search, selected e
 
 On October 20, 2026, Microsoft Security sent an automatic notification when the lab administrator activated the **Privileged Role Administrator** directory role. The email shows the activating identity, role, directory, and one-hour activation window. This provides evidence of successful **native PIM notification delivery**.
 
-**Screenshot upload pending:** Save the redacted PNG as `screenshots/04-pim-role-activation-email-alert-redacted.png`. Once uploaded, the image below will render automatically.
-
 ![Redacted Microsoft Entra PIM Privileged Role Administrator activation email](screenshots/04-pim-role-activation-email-alert-redacted.png)
 
 **Validation boundary:** This confirms a native Microsoft Entra PIM activation email, **not** successful Azure Monitor scheduled-query alert delivery. The Azure Monitor alert configuration above remains unverified end-to-end.
