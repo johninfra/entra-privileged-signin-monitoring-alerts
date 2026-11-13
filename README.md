@@ -1,13 +1,14 @@
 # Microsoft Entra Privileged Sign-In Monitoring & Alerts
 
-Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra sign-in events to Azure Monitor Logs, investigate them with Kusto Query Language (KQL), and configure email notifications for privileged account activity.
+Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra sign-in events to Azure Monitor Logs, investigate them with Kusto Query Language (KQL), and document privileged account monitoring. The lab also validates Microsoft Entra PIM's automatic email notification for a directory-role activation; this is a separate mechanism from Azure Monitor log-search alerts.
 
 ## Objectives
 
 - Centralize Microsoft Entra interactive sign-in telemetry in a Log Analytics workspace.
 - Identify successful and failed sign-ins for monitored emergency access accounts.
 - Build a log search alert with an Azure Monitor email action group.
-- Verify the detection path end-to-end without exposing live tenant identifiers.
+- Validate native PIM role-activation email notifications with a controlled test activation.
+- Verify the Azure Monitor detection and email-delivery path independently without exposing live tenant identifiers.
 - Understand the limits of fixed account lists versus dynamic Global Administrator membership.
 
 ## Architecture
@@ -22,7 +23,7 @@ flowchart LR
     F --> G[Email notification]
 ```
 
-The diagram is the intended monitoring design. Only the Entra-to-Log-Analytics data flow has been directly validated so far.
+The diagram is the **Azure Monitor sign-in detection design**. Entra-to-Log-Analytics ingestion has been validated, while end-to-end scheduled-query alert firing and action-group email delivery remain unverified. **Native Entra PIM role-activation email notifications are a separate, validated notification path**, not evidence that the Azure Monitor design has fired.
 
 ## Technologies
 
@@ -37,6 +38,12 @@ Microsoft Entra ID · Azure Monitor · Log Analytics · KQL · Azure RBAC · Azu
 5. Create an Azure Monitor **Custom log search** alert for matching sign-ins.
 6. Attach an email action group, configure severity and alert behavior, and test the notification.
 7. Review rule health, permissions, coverage, cost, and the results of an authorized test sign-in.
+
+## Validated PIM activation email notification
+
+A controlled Microsoft Entra Privileged Identity Management (PIM) activation generated an automatic Microsoft Security notification email. The message identifies the activating account, the **Privileged Role Administrator** directory role, the directory, and the **October 20, 2026, 19:22–20:22 UTC** activation window (one hour). This validates receipt of a native PIM role-activation email notification in the lab.
+
+This event is a **directory-role activation**, not an interactive sign-in alert. It does **not** establish that Azure Monitor's KQL scheduled-query alert or its action group sent an email. These two monitoring paths must be tested and reported independently.
 
 ## Detection scope and limitations
 
@@ -61,10 +68,10 @@ Microsoft Entra ID · Azure Monitor · Log Analytics · KQL · Azure RBAC · Azu
 │   ├── 02-privileged-signins.kql
 │   └── 03-failed-privileged-signins.kql
 └── screenshots/
-|   └── 01-alert-rule-review-redacted.png
-│   ├── 02-signin-log-query-results-redacted.png
-|   └── 03-entra-diagnostic-settings-redacted.png
- 
+    ├── 01-alert-rule-review-redacted.png
+    ├── 02-signin-log-query-results-redacted.png
+    ├── 03-entra-diagnostic-settings-redacted.png
+    └── 04-pim-role-activation-email-alert-redacted.png  (upload pending)
 ```
 
 ## Evidence
@@ -89,6 +96,16 @@ The alert wizard review shows the configured single-event log search, selected e
 
 ![Redacted Azure Monitor alert rule Review and create screen](screenshots/01-alert-rule-review-redacted.png)
 
+### 4. Native PIM role-activation email — validated
+
+On October 20, 2026, Microsoft Security sent an automatic notification when the lab administrator activated the **Privileged Role Administrator** directory role. The email shows the activating identity, role, directory, and one-hour activation window. This provides evidence of successful **native PIM notification delivery**.
+
+**Screenshot upload pending:** Save the redacted PNG as `screenshots/04-pim-role-activation-email-alert-redacted.png`. Once uploaded, the image below will render automatically.
+
+![Redacted Microsoft Entra PIM Privileged Role Administrator activation email](screenshots/04-pim-role-activation-email-alert-redacted.png)
+
+**Validation boundary:** This confirms a native Microsoft Entra PIM activation email, **not** successful Azure Monitor scheduled-query alert delivery. The Azure Monitor alert configuration above remains unverified end-to-end.
+
 See [validation checklist](docs/validation-checklist.md) for outstanding end-to-end tests.
 
 ## Security considerations
@@ -105,7 +122,7 @@ Azure Monitor log-search alert rules and Log Analytics ingestion may be billable
 
 ## Related work
 
-This lab complements Azure RBAC/PIM activation monitoring and Entra PIM role-activation labs; it detects **sign-in activity**, which is a different security signal from role activation.
+This repository covers **two distinct signals**: Entra **sign-in activity** exported to Log Analytics for KQL-based analysis, and **directory-role activation** notifications sent by native PIM. The PIM email path is validated; the Azure Monitor log-search alert delivery path is not yet verified end-to-end.
 
 ## References
 
