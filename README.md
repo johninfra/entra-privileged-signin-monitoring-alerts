@@ -1,6 +1,6 @@
 # Microsoft Entra Privileged Sign-In Monitoring & Alerts
 
-Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra sign-in events to Azure Monitor Logs, investigate them with Kusto Query Language (KQL), and document privileged account monitoring. The lab also validates Microsoft Entra PIM's automatic email notification for a directory-role activation; this is a separate mechanism from Azure Monitor log-search alerts.
+Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra sign-in events to Azure Monitor Logs, investigate them with Kusto Query Language (KQL), and document privileged account monitoring. The lab also validates native Microsoft Entra PIM activation emails and investigates PIM-managed directory-role changes in `AuditLogs`. Neither constitutes proof of Azure Monitor alert delivery.
 
 ## Objectives
 
@@ -8,6 +8,7 @@ Hands-on Azure identity-security lab demonstrating how to export Microsoft Entra
 - Identify successful and failed sign-ins for monitored emergency access accounts.
 - Build a log search alert with an Azure Monitor email action group.
 - Validate native PIM role-activation email notifications with a controlled test activation.
+- Examine privileged role membership and eligibility changes using `AuditLogs` and KQL.
 - Verify the Azure Monitor detection and email-delivery path independently without exposing live tenant identifiers.
 - Understand the limits of fixed account lists versus dynamic Global Administrator membership.
 
@@ -82,6 +83,8 @@ This event is a **directory-role activation**, not an interactive sign-in alert.
 
 **Sign-in types:** `SigninLogs` addresses interactive sign-ins. Non-interactive account activity requires appropriate diagnostic categories and separate detection logic.
 
+**PIM audit activity:** `AuditLogs` records role-management operations, distinct from authentication events; audit records alone do not validate Azure Monitor alert delivery.
+
 **Alert delivery:** Log ingestion, evaluation intervals, stateful/stateless behavior, and notification processing introduce latency. A matching sign-in is not guaranteed to yield exactly one email.
 
 ## Repository structure
@@ -101,12 +104,13 @@ This event is a **directory-role activation**, not an interactive sign-in alert.
     ├── 01-alert-rule-review-redacted.png
     ├── 02-signin-log-query-results-redacted.png
     ├── 03-entra-diagnostic-settings-redacted.png
-    └── 04-pim-role-activation-email-alert-redacted.png  (upload pending)
+    ├── 04-pim-role-activation-email-alert-redacted.png
+    └── 05-pim-role-assignment-auditlogs-redacted.png  (upload pending)
 ```
 
 ## Evidence
 
-The following redacted screenshots are stored in the repository and displayed in implementation order. Identifiers have been obscured for public documentation.
+These redacted screenshots document the configuration and observed results. Screenshot 05 will render after its image is uploaded to `screenshots/`. Identifiers are obscured for public documentation.
 
 ### 1. Microsoft Entra diagnostic settings
 
@@ -134,6 +138,14 @@ On October 20, 2026, Microsoft Security sent an automatic notification when the 
 
 **Validation boundary:** This confirms a native Microsoft Entra PIM activation email, **not** successful Azure Monitor scheduled-query alert delivery. The Azure Monitor alert configuration above remains unverified end-to-end.
 
+### 5. Privileged role assignment changes — PIM AuditLogs
+
+The saved [`07-privileged-role-assignment-changes.kql`](queries/07-privileged-role-assignment-changes.kql) investigation query examines `AuditLogs` over a 30-day window. The redacted Log Analytics results show successful role-management operations attributed to **MS-PIM**, including **Add member to role**, **Remove member from role**, and **Remove eligible member from role**. Displayed target roles include **Global Administrator**, **Billing Administrator**, and **Privileged Role Administrator**.
+
+![Redacted PIM directory role assignment and eligibility changes in Azure Log Analytics AuditLogs](screenshots/05-pim-role-assignment-auditlogs-redacted.png)
+
+**Validation boundary:** These results demonstrate that PIM-related role changes were captured and queried in centralized `AuditLogs`. They do **not** demonstrate an interactive privileged sign-in, a complete role activation workflow, or Azure Monitor alert notification delivery.
+
 See [validation checklist](docs/validation-checklist.md) for outstanding end-to-end tests.
 
 ## Security considerations
@@ -150,7 +162,7 @@ Azure Monitor log-search alert rules and Log Analytics ingestion may be billable
 
 ## Related work
 
-This repository covers **two distinct signals**: Entra **sign-in activity** exported to Log Analytics for KQL-based analysis, and **directory-role activation** notifications sent by native PIM. The PIM email path is validated; the Azure Monitor log-search alert delivery path is not yet verified end-to-end.
+This repository documents **three complementary evidence paths**: Entra **sign-in activity** analyzed in Log Analytics, **PIM role-management changes** captured in `AuditLogs`, and **directory-role activation** notifications sent by native PIM. The PIM email path is validated; the Azure Monitor log-search alert delivery path is not yet verified end-to-end.
 
 ## References
 
