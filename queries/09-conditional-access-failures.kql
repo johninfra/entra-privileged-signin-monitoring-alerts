@@ -1,0 +1,17 @@
+// Sign-ins blocked or failed by Conditional Access, with the evaluated policy details.
+// Useful after enabling or changing a policy to confirm who it affects and why.
+// Table: SigninLogs (interactive) | Window: 7d
+SigninLogs
+| where TimeGenerated > ago(7d)
+| where ConditionalAccessStatus == "failure"
+| project
+    TimeGenerated,
+    UserPrincipalName,
+    AppDisplayName,
+    IPAddress,
+    Location,
+    ConditionalAccessStatus,
+    ResultType,
+    ResultDescription,
+    ConditionalAccessPolicies
+| order by TimeGenerated desc

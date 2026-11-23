@@ -1,0 +1,28 @@
+// All successful interactive sign-ins with location, authentication requirement, and Conditional Access result.
+// Table: SigninLogs (interactive) | Window: 24h
+SigninLogs
+| where TimeGenerated >= ago(24h)
+| where ResultType == "0"
+| extend
+    City = tostring(LocationDetails.city),
+    State = tostring(LocationDetails.state),
+    Country = tostring(LocationDetails.countryOrRegion),
+    SignInType = iff(
+        IsInteractive == true,
+        "Interactive",
+        "Non-Interactive"
+    )
+| project
+    TimeGenerated,
+    UserDisplayName,
+    UserPrincipalName,
+    AppDisplayName,
+    IPAddress,
+    City,
+    State,
+    Country,
+    SignInType,
+    AuthenticationRequirement,
+    ConditionalAccessStatus,
+    ResultDescription
+| order by TimeGenerated desc

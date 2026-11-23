@@ -39,6 +39,35 @@ Microsoft Entra ID · Azure Monitor · Log Analytics · KQL · Azure RBAC · Azu
 6. Attach an email action group, configure severity and alert behavior, and test the notification.
 7. Review rule health, permissions, coverage, cost, and the results of an authorized test sign-in.
 
+## KQL query library
+
+Beyond the three alert templates, the `queries/` folder holds the saved investigation queries used in the lab workspace. They are **investigation and hunting queries run manually in Log Analytics**, not deployed alert rules. They were run against a personal lab tenant with lab-scale volume, so thresholds are starting points rather than tuned production values. Live identifiers have been replaced with placeholders.
+
+| # | Query | Question it answers | Source table(s) | Window |
+|---|---|---|---|---|
+| 01 | `01-ingestion-health.kql` | Are sign-in events reaching the workspace? | SigninLogs | 24h |
+| 02 | `02-privileged-signins.kql` | Did a monitored privileged account sign in successfully? (alert template) | SigninLogs | 15m |
+| 03 | `03-failed-privileged-signins.kql` | Did sign-ins to a monitored privileged account fail? (alert template) | SigninLogs | 15m |
+| 04 | `04-brute-force-per-account.kql` | Is one account receiving 5+ failed password or lockout events from one IP in 15 minutes? | SigninLogs | 24h |
+| 05 | `05-password-spray-per-ip.kql` | Is one IP failing against 3+ accounts in 15 minutes? | SigninLogs | 24h |
+| 06 | `06-emergency-account-signins.kql` | Has any break-glass account signed in, successfully or not? | SigninLogs | 30d |
+| 07 | `07-privileged-role-assignment-changes.kql` | Which role assignments and PIM activations changed, who initiated them, and for which principal? | AuditLogs | 30d |
+| 08 | `08-identity-security-config-changes.kql` | Who changed Conditional Access, authentication methods, apps, service principals, or groups? | AuditLogs | 24h |
+| 09 | `09-conditional-access-failures.kql` | Which sign-ins did Conditional Access block, and under which policies? | SigninLogs | 7d |
+| 10 | `10-all-failed-signins.kql` | What failed sign-ins occurred, and why? | SigninLogs | 24h |
+| 11 | `11-successful-signins-outside-us.kql` | Did anyone sign in successfully from outside the US? | SigninLogs, AADNonInteractiveUserSignInLogs | 30d |
+| 12 | `12-all-successful-signins.kql` | Who signed in successfully, from where, and under which authentication requirement? | SigninLogs | 24h |
+| 13 | `13-latest-signin-per-user.kql` | What is each user's latest sign-in, including device context? | SigninLogs | 24h |
+| 14 | `14-recently-active-sessions.kql` | Who is active right now (last hour), from which apps and IPs? | SigninLogs, AADNonInteractiveUserSignInLogs | 1h |
+| 15 | `15-inactive-users.kql` | Which users have not signed in successfully for 7+ days? | SigninLogs, AADNonInteractiveUserSignInLogs | 90d |
+
+**Query-specific limits**
+
+- **11, 14, 15** need the `NonInteractiveUserSignInLogs` diagnostic category in addition to `SignInLogs`.
+- **15** returns only users with at least one successful sign-in inside the lookback window. Accounts that never signed in are not returned, so use Microsoft Graph `signInActivity` or access reviews for a complete stale-account inventory.
+- **06** matches break-glass accounts by UPN prefix for investigation convenience. For alerting, use the Object ID templates in 02 and 03.
+- **04 and 05** aggregate per IP. Distributed attacks spread across many IPs need different aggregation, such as per account over a longer window.
+
 ## Validated PIM activation email notification
 
 A controlled Microsoft Entra Privileged Identity Management (PIM) activation generated an automatic Microsoft Security notification email. The message identifies the activating account, the **Privileged Role Administrator** directory role, the directory, and the **October 20, 2026, 19:22–20:22 UTC** activation window (one hour). This validates receipt of a native PIM role-activation email notification in the lab.
@@ -66,7 +95,8 @@ This event is a **directory-role activation**, not an interactive sign-in alert.
 ├── queries/
 │   ├── 01-ingestion-health.kql
 │   ├── 02-privileged-signins.kql
-│   └── 03-failed-privileged-signins.kql
+│   ├── 03-failed-privileged-signins.kql
+│   └── 04–15 investigation queries (see KQL query library)
 └── screenshots/
     ├── 01-alert-rule-review-redacted.png
     ├── 02-signin-log-query-results-redacted.png

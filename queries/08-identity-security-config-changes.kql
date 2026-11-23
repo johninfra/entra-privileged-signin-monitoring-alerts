@@ -1,0 +1,26 @@
+// Identity and security configuration changes: Conditional Access policies, authentication methods,
+// applications, service principals, and groups.
+// Broad by design for investigation; expect noise from routine group and app changes before tuning.
+// Table: AuditLogs | Window: 24h
+AuditLogs
+| where TimeGenerated > ago(24h)
+| where OperationName has_any (
+    "conditional access policy",
+    "authentication method",
+    "application",
+    "service principal",
+    "group"
+)
+| extend Actor = coalesce(
+    tostring(InitiatedBy.user.userPrincipalName),
+    tostring(InitiatedBy.app.displayName))
+| extend Target = tostring(TargetResources)
+| project
+    TimeGenerated,
+    Category,
+    OperationName,
+    Actor,
+    Target,
+    Result,
+    CorrelationId
+| order by TimeGenerated desc

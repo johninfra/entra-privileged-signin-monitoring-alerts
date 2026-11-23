@@ -1,0 +1,22 @@
+// Users with successful sign-in activity in the last hour, including token-based (non-interactive) activity.
+// Shows which applications and IP addresses each user is active from, for live session review.
+// Tables: SigninLogs, AADNonInteractiveUserSignInLogs | Window: 1h
+union isfuzzy=true
+    SigninLogs,
+    AADNonInteractiveUserSignInLogs
+| where TimeGenerated > ago(1h)
+| where ResultType == "0"
+| summarize
+    LastActivity = max(TimeGenerated),
+    SignInEvents = count(),
+    Applications = make_set(AppDisplayName, 10),
+    IPAddresses = make_set(IPAddress, 10)
+    by UserPrincipalName, UserDisplayName
+| project
+    LastActivity,
+    UserDisplayName,
+    UserPrincipalName,
+    SignInEvents,
+    Applications,
+    IPAddresses
+| order by LastActivity desc
