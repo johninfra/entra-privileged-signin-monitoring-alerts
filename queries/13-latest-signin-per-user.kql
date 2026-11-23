@@ -1,0 +1,31 @@
+// Most recent successful sign-in per user, with location, device, and authentication context.
+// Useful as a starting point for a user-session investigation.
+// Table: SigninLogs (interactive) | Window: 24h
+SigninLogs
+| where TimeGenerated > ago(24h)
+| where ResultType == "0"
+| summarize arg_max(TimeGenerated, *)
+    by UserPrincipalName
+| extend
+    City = tostring(LocationDetails.city),
+    State = tostring(LocationDetails.state),
+    Country = tostring(LocationDetails.countryOrRegion),
+    SignInType = iff(
+        IsInteractive == true,
+        "Interactive",
+        "Non-Interactive")
+| project
+    LastSignIn = TimeGenerated,
+    UserDisplayName,
+    UserPrincipalName,
+    AppDisplayName,
+    IPAddress,
+    City,
+    State,
+    Country,
+    Location,
+    SignInType,
+    AuthenticationRequirement,
+    ConditionalAccessStatus,
+    DeviceDetail
+| order by LastSignIn desc

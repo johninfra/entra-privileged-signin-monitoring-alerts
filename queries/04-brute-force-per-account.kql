@@ -1,0 +1,22 @@
+// Detect potential brute-force attempts against a single account.
+// Signal: 5+ failed password or smart-lockout events for one user from one IP in a 15-minute bin.
+// Error codes: 50126 = invalid username or password; 50053 = account locked (smart lockout).
+// Table: SigninLogs (interactive) | Window: 24h
+// Tune the threshold to your environment; lab-scale volume, not a tuned production rule.
+SigninLogs
+| where TimeGenerated >= ago(24h)
+| where ResultType in ("50126", "50053")
+| summarize
+    FailedAttempts = count(),
+    FirstAttempt = min(TimeGenerated),
+    LastAttempt = max(TimeGenerated),
+    ErrorCodes = make_set(ResultType)
+    by IPAddress, UserPrincipalName, bin(TimeGenerated, 15m)
+| where FailedAttempts >= 5
+| project FirstAttempt,
+          LastAttempt,
+          UserPrincipalName,
+          IPAddress,
+          FailedAttempts,
+          ErrorCodes
+| order by FailedAttempts desc

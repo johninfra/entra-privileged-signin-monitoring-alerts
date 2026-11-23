@@ -1,0 +1,23 @@
+// Privileged role assignment changes, including PIM activations and deactivations.
+// Shows who initiated each change (user or service such as MS-PIM), the target principal, and the role.
+// Use it to confirm activations match approved requests, and to catch role changes on emergency-access accounts.
+// Table: AuditLogs (Category = RoleManagement) | Window: 30d
+AuditLogs
+| where TimeGenerated > ago(30d)
+| where Category == "RoleManagement"
+| extend InitiatedByUser = tostring(InitiatedBy.user.userPrincipalName)
+| extend InitiatedByApp = tostring(InitiatedBy.app.displayName)
+| extend Initiator = coalesce(InitiatedByUser, InitiatedByApp)
+| mv-expand TargetResources
+| extend TargetType = tostring(TargetResources.type),
+         TargetName = tostring(TargetResources.displayName),
+         TargetUPN = tostring(TargetResources.userPrincipalName)
+| extend Properties = TargetResources.modifiedProperties
+| mv-expand Properties
+| extend PropertyName = tostring(Properties.displayName),
+         NewValue = trim(@'["\\]', tostring(Properties.newValue))
+| where PropertyName in~ ("Role.DisplayName", "RoleDefinition.DisplayName", "Role.Name")
+| project TimeGenerated, OperationName, Result,
+          Initiator, TargetName, TargetUPN,
+          ActivatedRole = NewValue
+| order by TimeGenerated desc

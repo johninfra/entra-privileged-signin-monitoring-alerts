@@ -1,0 +1,15 @@
+// Users whose last successful sign-in is older than the threshold (default 7 days).
+// LIMITATION: only users who signed in at least once within the lookback window appear.
+// Accounts that never signed in, or last signed in before the lookback, are not returned; use Microsoft Graph
+// signInActivity or access reviews for a complete stale-account inventory.
+// lookback cannot exceed the workspace retention period.
+// Tables: SigninLogs, AADNonInteractiveUserSignInLogs | Window: 90d
+let lookback  = 90d;   // can't exceed your workspace retention
+let threshold = 7d;
+union SigninLogs, AADNonInteractiveUserSignInLogs
+| where TimeGenerated > ago(lookback)
+| where ResultType == "0"   // successful sign-ins only
+| summarize LastSuccessfulSignIn = max(TimeGenerated) by UserPrincipalName, UserId
+| where LastSuccessfulSignIn < ago(threshold)
+| extend DaysSinceSignIn = datetime_diff('day', now(), LastSuccessfulSignIn)
+| order by LastSuccessfulSignIn asc

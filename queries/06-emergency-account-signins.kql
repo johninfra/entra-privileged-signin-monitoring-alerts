@@ -1,0 +1,22 @@
+// TEMPLATE: all sign-ins (successful and failed) by emergency-access (break-glass) accounts.
+// Any result here should be investigated: these accounts should only sign in during a declared emergency or a scheduled test.
+// Replace the placeholders with your own account names ONLY in your private workspace. Never commit live break-glass names.
+// Matching on UPN prefix is convenient for investigation; for alerting, prefer Object IDs (see 02 and 03), which survive renames.
+// Table: SigninLogs (interactive) | Window: 30d
+SigninLogs
+| where TimeGenerated > ago(30d)
+| where UserPrincipalName startswith "<BREAKGLASS_ACCOUNT_1>@"
+    or UserPrincipalName startswith "<BREAKGLASS_ACCOUNT_2>@"
+| extend SignInStatus = iff(
+    ResultType == "0", "Success", "Failed")
+| project
+    TimeGenerated,
+    UserPrincipalName,
+    SignInStatus,
+    IPAddress,
+    Location,
+    AppDisplayName,
+    ResultDescription,
+    ConditionalAccessStatus,
+    AuthenticationRequirement
+| order by TimeGenerated desc

@@ -1,0 +1,15 @@
+// All failed interactive sign-in attempts, for triage and baseline review.
+// Table: SigninLogs (interactive) | Window: 24h
+SigninLogs
+| where TimeGenerated >= ago(24h)
+| where ResultType != "0"
+| project
+    TimeGenerated,
+    UserPrincipalName,
+    IPAddress,
+    Location,
+    ResultType,
+    ResultDescription,
+    AppDisplayName,
+    ConditionalAccessStatus
+| order by TimeGenerated desc

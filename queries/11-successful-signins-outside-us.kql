@@ -1,0 +1,20 @@
+// Successful sign-ins from outside the United States (interactive and non-interactive).
+// The lab tenant's users are US-based, so any result is worth reviewing. Change "US" to fit your organization.
+// LocationDetails is parsed explicitly because it is stored as a string in AADNonInteractiveUserSignInLogs.
+// Tables: SigninLogs, AADNonInteractiveUserSignInLogs | Window: 30d
+// Requires the NonInteractiveUserSignInLogs diagnostic category.
+let lookback = 30d;
+union
+    (SigninLogs
+        | where TimeGenerated > ago(lookback)
+        | extend Loc = parse_json(LocationDetails)),
+    (AADNonInteractiveUserSignInLogs
+        | where TimeGenerated > ago(lookback)
+        | extend Loc = parse_json(LocationDetails))
+| where ResultType == "0"
+| extend Country = tostring(Loc.countryOrRegion),
+         City = tostring(Loc.city)
+| where isnotempty(Country) and Country != "US"
+| project TimeGenerated, Type, UserPrincipalName, Country, City,
+          IPAddress, AppDisplayName, ConditionalAccessStatus
+| order by TimeGenerated desc
